@@ -1193,7 +1193,124 @@ sync.Once内部包含一个互斥锁和一个布尔值
 
 #### 6.8.3 sync.Map
 Go语言中内置的map不是并发安全的  
+```go
+var m=make(map[string]int)
 
+func get(key string) int{
+    return m[key]
+}
 
+func set(key string,value int){
+    m[key]=value
+}
+
+func main() {
+    wg:= sync.WaitGroup{}
+    for i := 0; i < 3; i++ {
+        wg.Add(1)
+        go func(n int) {
+            key := strconv.Itoa(n)
+            set(key,n)
+            fmt.Printf("k=%v,v=%v\n",key,get(key))
+            wg.Done()
+        }(i)
+    }
+    wg.Wait()
+}
+```
+解决方案1: 加互斥锁
+```go
+var m=make(map[string]int)
+var lock sync.Mutex
+
+func get(key string) int{
+	return m[key]
+}
+
+func set(key string,value int){
+	lock.Lock()
+	m[key]=value
+	lock.Unlock()
+}
+
+func main() {
+	wg:= sync.WaitGroup{}
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func(n int) {
+			key := strconv.Itoa(n)
+			set(key,n)
+			fmt.Printf("k=%v,v=%v\n",key,get(key))
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+}
+```
+解决方案2: 使用sync.Map  
+sync中提供了一个开箱即用的并发安全版的sync.Map  
+开箱即用表示不用像内置的map一样使用make函数初始化就能直接使用  
+内置了Store,Load,LoadOrStore,Delete,Range等操作方法
+```go
+var m=sync.Map{}
+
+func main() {
+	count:=0
+	wg := sync.WaitGroup{}
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func(n int) {
+			key := strconv.Itoa(n)
+			m.Store(key,n)
+			value, _ := m.Load(key)
+			fmt.Printf("k=%v,v=%v\n",key,value)
+			count++
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+	fmt.Printf("count=%v\n",count)
+}
+```
+#### 6.8.4 原子操作
+代码中加锁操作因为设计内核态的上下文切换会比较耗时、代价比较高。  
+针对基本数据类型我们还可以使用原子操作来保证并发安全  
+原子操作是Go语言提供的方法，它在用户态就可以完成，因此性能比加锁操作更好
+```go
+var x int64
+var lock sync.Mutex
+var wg sync.WaitGroup
+
+func add()  {
+	x++
+	wg.Done()
+}
+
+func mutexAdd(){
+	lock.Lock()
+	x++
+	lock.Unlock()
+	wg.Done()
+}
+
+func atomicAdd()  {
+	atomic.AddInt64(&x,1)
+	wg.Done()
+}
+
+func main() {
+	start := time.Now()
+	for i := 0; i < 1000000; i++ {
+		wg.Add(1)
+		//go add()      //不是并发安全的
+		//go mutexAdd()  //并发安全的，加锁性能开销大
+		go atomicAdd() //并发安全的，性能优于加锁版
+	}
+	wg.Wait()
+	end := time.Now()
+	fmt.Println(x,end.Sub(start))
+}
+```
+使用原子操作是并发安全的，且性能优于加锁版
 
 

@@ -2,29 +2,40 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
-var m=make(map[string]int)
+var x int64
+var lock sync.Mutex
+var wg sync.WaitGroup
 
-func get(key string) int{
-	return m[key]
+func add() {
+	x++
+	wg.Done()
 }
 
-func set(key string,value int){
-	m[key]=value
+func mutexAdd() {
+	lock.Lock()
+	x++
+	lock.Unlock()
+	wg.Done()
 }
 
+func atomicAdd() {
+	atomic.AddInt64(&x, 1)
+	wg.Done()
+}
 func main() {
-	wg:= sync.WaitGroup{}
-	for i := 0; i < 20; i++ {
+	start := time.Now()
+	for i := 0; i < 1000000; i++ {
 		wg.Add(1)
-		go func(n int) {
-			key := strconv.Itoa(n)
-			set(key,n)
-			fmt.Printf("k=%v,v=%v\n",key,get(key))
-			wg.Done()
-		}(i)
+		//go add()
+		//go mutexAdd()
+		go atomicAdd()
 	}
+	wg.Wait()
+	end := time.Now()
+	fmt.Println(x, end.Sub(start))
 }
