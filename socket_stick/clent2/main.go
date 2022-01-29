@@ -1,9 +1,9 @@
 package main
 
 import (
+	"Learn-Go/socket_stick/proto"
 	"fmt"
 	"net"
-	"src/learnGo/socket_stick/proto"
 )
 
 func main() {

@@ -1,3 +1,5 @@
+## 0. 注意事项
+- 配置玩mingw时记得重启
 ## 1. Go基础
 ### 1.1 Go主要特征
 1. 自动立即回收
@@ -20,6 +22,7 @@ go command arguments
 - `fmt`: run gofmt on package source
 - `generate`: generate Go files by processing source
 - `get`: download and install packages and dependencies
+  - `go get` 使用git的代理配置
 - `install`: compile and install packages and dependencies
 - `list`: list packages
 - `run`: compile and run Go program
@@ -154,29 +157,29 @@ const (
 )
 ```
 ### 1.6基本数据类型
-|类型|长度（字节）|默认值|说明|
-|---|----------|-----|---|
-|bool|1|false||
-|byte|1|0|uint8|
-|rune|4|0|Unicode Code Point,int32|
-|int,uint|4或者8|0|32位或者64位|
-|int8,uint8|1|0|-128~127,0~255,byte时uint的别名|
-|int16,uint16|2|0|-32768~32767,0~65535|
-|int32,uint32|4|0|-21亿~21亿,0~42亿,rune是int32的别名|
-|int64,uint64|8|0|
-|float32|4|0.0|
-|float64|8|0.0|
-|complex64|8|
-|complex128|16|
-|uintptr|4或者8| |存储指针的uint32或uint64整输|
-|array| | |值类型|
-|struct| | |值类型|
-|string| |""|utf-8字符串|
-|slice| |nil|引用类型|
-|map| |nil|引用类型|
-|channel| |nil|引用类型|
-|interface| |nil|接口|
-|function| |nil|函数|
+| 类型           | 长度（字节） | 默认值   | 说明                           |
+|--------------|--------|-------|------------------------------|
+| bool         | 1      | false ||
+| byte         | 1      | 0     | uint8                        |
+| rune         | 4      | 0     | Unicode Code Point,int32     |
+| int,uint     | 4或者8   | 0     | 32位或者64位                     |
+| int8,uint8   | 1      | 0     | -128~127,0~255,byte时uint的别名  |
+| int16,uint16 | 2      | 0     | -32768~32767,0~65535         |
+| int32,uint32 | 4      | 0     | -21亿~21亿,0~42亿,rune是int32的别名 |
+| int64,uint64 | 8      | 0     |
+| float32      | 4      | 0.0   |
+| float64      | 8      | 0.0   |
+| complex64    | 8      |
+| complex128   | 16     |
+| uintptr      | 4或者8   |       | 存储指针的uint32或uint64整输         |
+| array        |        |       | 值类型                          |
+| struct       |        |       | 值类型                          |
+| string       |        | ""    | utf-8字符串                     |
+| slice        |        | nil   | 引用类型                         |
+| map          |        | nil   | 引用类型                         |
+| channel      |        | nil   | 引用类型                         |
+| interface    |        | nil   | 接口                           |
+| function     |        | nil   | 函数                           |
 支持八进制、十六进制，以及科学计数法,个数字类型的取值范围
 ```go
 a,b,c,d:=071,0x1F,1e9,math.MinInt16
@@ -1312,5 +1315,125 @@ func main() {
 }
 ```
 使用原子操作是并发安全的，且性能优于加锁版
+#### 6.8.5 GMP原理和调度
+#### 6.8.6 爬虫小案例
+邮箱爬虫: [main.go](web_crawler/email/main.go)
+并发图片爬虫: [main.go](web_crawler/image/main.go)
+## 7 数据操作
+### 7.1 mysql
+go操作mysql(原生): [main.go](mysql_test/main.go)
+go操作mysql(事务 && 原生)： [main.go](mysql_test/tx/main.go)
+### 7.2 gorm
+#### 7.2.1 快速入门
+[main](gorm_test/1/main.go)
+#### 7.2.2 模型定义
+```go
+type User sturct{
+	ID uint     //column name `id`
+	Name string     //`name`
+	Birthday time.Time     //`birthday`
+	CreateAt time.Time      //`create_at`
+}
+```
+| 标签              | 功能                                                                                       |
+|-----------------|------------------------------------------------------------------------------------------|
+| column          | 指定列的名称     ``Age int64 `gorm:"column:age_of_animal"` ``                                  |
+| type            | 指定列的类型     ``Name string `gorm:"type:varchar(100);comment:姓名"` ``                        |
+| size            | 指定列的大小，默认是255     ``  Name string `gorm:"type:varchar(100);comment:姓名"` ``               |
+| primary_key     | 指定一个列作为主键      `` AnimalID int64 `gorm:"primary_key"` ``                                 |
+| unique          | 指定一个唯一的列        `` MemberNumber *string `gorm:"unique;not null"` ``                      |
+| default         | 指定一个列的默认值       `` Name string `gorm:"type:varchar(100);default:RandySun;comment:姓名"` `` |
+| precision       | 指定类的精度                                                                                   |
+| not null        | 指定列的数据不为空       `` MemberNumber *string `gorm:"unique;not null"` ``                      |
+| auto_increment  | 指定一个列的数据是否自增   `` Num  int    `gorm:"AUTO_INCREMENT"` ``                                 |
+| index           | 创建带或不带名称的索引，同名创建复合索引   `` Address string  `gorm:"index:addr"` ``                         |
+| unique_index    | 创建一个唯一索引          `` Email string `gorm:"type:varchar(100);unique_index"` ``             |
+| embedded        | 将struct设置为嵌入式                                                                            |
+| embedded_prefix | 设置嵌入式结构的前缀名称                                                                             |
+| -               | 忽略这些字段        `` IgnoreMe  int `gorm:"-"` ``                                             |
+embedded示例：
+```go
+type Author struct {
+    Name  string
+    Email string
+}
 
+type Blog struct {
+    ID      int
+    Author  Author `gorm:"embedded"`
+    Upvotes int32
+}
+// 等效于
+type Blog struct {
+    ID    int64
+    Name  string
+    Email string
+    Upvotes  int32
+}
+```
+#### 7.2.3 惯例
+- 表名是结构题名称的复数形式
+```go
+type User struct {} // 默认的表名是 `users`
 
+// 设置 `User` 的表名为 `profiles`
+func (User) TableName() string {
+    return "profiles"
+}
+
+func (u User) TableName() string {
+    if u.Role == "admin" {
+        return "admin_users"
+    } else {
+        return "users"
+    }
+}
+// 如果设置禁用表名复数形式属性为 true，`User` 的表名将是 `user`
+db.SingularTable(true)
+```
+- 列名是字段名的蛇形小写形式
+```go
+type User struct {
+  ID        uint      // 字段名是 `id`
+  Name      string    // 字段名是 `name`
+  Birthday  time.Time // 字段名是 `birthday`
+  CreatedAt time.Time // 字段名是 `created_at`
+}
+
+// 重写列名
+type Animal struct {
+    AnimalId    int64     `gorm:"column:beast_id"`         // 设置列名为 `beast_id`
+    Birthday    time.Time `gorm:"column:day_of_the_beast"` // 设置列名为 `day_of_the_beast`
+    Age         int64     `gorm:"column:age_of_the_beast"` // 设置列名为 `age_of_the_beast`
+}
+```
+#### 7.2.4 连接数据库
+```go
+import (
+    "github.com/jinzhu/gorm"
+    _ "github.com/jinzhu/gorm/dialects/mysql"
+)
+
+func main() {
+  db, err := gorm.Open("mysql", "root:123456@tcp(101.37.20.199:3306)/test?charset=utf8&parseTime=True&loc=Local")
+  if err != nil {
+    fmt.Println("error:", err)
+    return
+  }
+  fmt.Println("链接成功")
+  defer db.Close()
+}
+```
+#### 7.2.5 创建
+[main.go](gorm_test/3/main.go)
+#### 7.2.6 查询
+[main.go](gorm_test/4/main.go)
+#### 7.2.6 更新
+[main.go](gorm_test/5/main.go)
+#### 7.2.7 删除
+[main.go](gorm_test/6/main.go)
+### 7.3 kafka
+### 7.4 redis
+### 7.5 elasticSearch
+## 8 常用标准库
+### 8.1 fmt
