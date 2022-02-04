@@ -1437,3 +1437,219 @@ func main() {
 ### 7.5 elasticSearch
 ## 8 常用标准库
 ### 8.1 fmt
+#### 8.1.1 控制台输出
+- `print(a ...interface{})`不换行输出
+- `printf(a ...interface{})`格式化输出
+- `println(a ...interface{})`换行输出
+#### 8.1.2 向文件中写入内容
+- `Fprint(w io.Writer,a ...interface{})`
+- `Fprintf(w io.Writer,a ...interface{})`
+- `func Fprintln(w io.Writer, a ...interface{})`
+eg: [main.go](/file_test/1/main.go)
+#### 8.1.3 返回一个字符串
+- `func Sprint(a ...interface{}) string`
+- `func Sprintf(format string, a ...interface{}) string`
+- `func Sprintln(a ...interface{}) string`
+#### 8.1.4 返回一个包含该字符串的错误
+`func Errorf(format string, a ...interface{}) error`
+`err:=fmt.Errorf("这是一个错误")`
+#### 8.1.5 `prinf()`系列函数的格式化占位符
+| 占位符   | 说明                   |
+|-------|----------------------|
+| `%v`  | 值的默认格式表示             |
+| `%+v` | 类似`%v`,但输出结构体时会添加字段名 |
+| `%#v` | 值的go语法表示             |
+| `%T`  | 值的类型                 |
+| `%%`  | 百分号                  |
+```go
+    o := struct{ name string }{"枯藤"}
+    fmt.Printf("%v\n", o)
+    fmt.Printf("%#v\n", o)
+    //{枯藤}
+    ////struct { name string }{name:"枯藤"}
+```
+
+| 占位符  | 说明         |
+|------|------------|
+| `%t` | ture或false |
+
+| 占位符  | 说明                                  |
+|------|-------------------------------------|
+| `%b` | 二进制                                 |
+| `%c` | 该值对应的unicode码值                      |
+| `%d` | 表示为十进制                              |
+| `%o` | 表示为八进制                              |
+| `%x` | 表示为十六进制，使用a-f                       |
+| `%X` | 表示为十六禁止，使用A-F                       |
+| `%U` | 表示为Unicode格式，U+12345,等价于”U+%04X“    |
+| `%q` | 该值对应的单引号括起来的go语法字符字面值，必要时会采用安全的转义表示 |
+```go
+  n := 65
+  fmt.Printf("%b\n", n)
+  fmt.Printf("%c\n", n)
+  fmt.Printf("%d\n", n)
+  fmt.Printf("%o\n", n)
+  fmt.Printf("%x\n", n)
+  fmt.Printf("%X\n", n)
+  //1000001
+  //A
+  //65
+  //101
+  //41
+  ////41
+```
+
+| 占位符  | 说明                  |
+|------|---------------------|
+| `%b` | 浮点数转化为二进制的科学计数法     |
+| `%e` | 科学计数法，使用e           |
+| `%E` | 科学计数法，使用E           |
+| `%f` | 有小数但无指数部分           |
+| `%F` | 等价于`%f`             |
+| `%g` | 根据实际情况采用`%f`或`%e`格式 |
+| `%G` | 根据实际情况采用`%G`或`%E`格式 |
+```go
+  f := 12.34
+  fmt.Printf("%b\n", f)
+  fmt.Printf("%e\n", f)
+  fmt.Printf("%E\n", f)
+  fmt.Printf("%f\n", f)
+  fmt.Printf("%g\n", f)
+  fmt.Printf("%G\n", f)
+
+  //6946802425218990p-49
+  //1.234000e+01
+  //1.234000E+01
+  //12.340000
+  //12.34
+  ////12.34
+```
+
+| 占位符  | 说明                                  |
+|------|-------------------------------------|
+| `%s` | 直接输出字符串或者`[]byte`                   |
+| `%q` | 该值对应的双引号括起来的go语法字符串字面值，必要时采用安全的转义表示 |
+| `%x` | 每个字节用两字符十六进制表示，使用a-f                |
+| `%X` | 每个自己用两字符十六进制表示，使用A-F                |
+```go
+  s := "枯藤"
+  fmt.Printf("%s\n", s)
+  fmt.Printf("%q\n", s)
+  fmt.Printf("%x\n", s)
+  fmt.Printf("%X\n", s)
+
+  //枯藤
+  //"枯藤"
+  //e69eafe897a4
+  ////E69EAFE897A4
+```
+
+| 占位符  | 说明               |
+|------|------------------|
+| `%p` | 表示为十六禁止，并加上前导的ox |
+```go
+  a := 18
+  fmt.Printf("%p\n", &a)
+  fmt.Printf("%#p\n", &a)
+  //0xc000054058
+  ////c000054058
+```
+### 8.2 Time
+time包提供了时间的显示和测量用的函数。日历的计算采用的是公历  
+### 8.3 Flag
+flag包实现了命令行参数的解析，使用flag包开发命令行工具更为简单  
+#### 8.3.1 获取命令行参数
+获取命令行参数：[main.go](/flag_test/1/main.go)
+#### 8.3.2 flag包的基本使用
+### 8.4 Log
+log包实现了简单的日志服务
+### 8.5 IO操作
+#### 8.5.1 输入输出的底层原理
+- 终端其实是一个文件，相关实例如下（标准输入，输出为控制台输入和输出）
+  - `os.Stdin`:标准输入的文件实例，类型为`*File`
+  - `os.Stdout`:标准输出的文件实例，类型为`*File`
+  - `os.Stderr`:标准错误的文件实例，类型为`*File`
+以下是以文件的形式操作终端：[main.go](/io_test/1/main.go)
+#### 8.5.2 文件操作相关API
+
+| API                                                                       | 说明                                    |
+|---------------------------------------------------------------------------|---------------------------------------|
+| `func Create(name string) (file *File,err Error)`                         | 根据提供的文件名创建新的文件，返回一个文件对象，默认的权限是0666    |
+| `func NewFile(fd uintptr,name string) *File`                              | 根据文件描述符创建相应的文件，返回一个文件对象               |
+| `func Open(name string) (file *File,err Error)`                           | 只读的方式打开一个名为name的文件                    |
+| `func OpenFile(name string,flag int,perm unint32) (file *File,err Error)` | 打开名称为name的文件，flag是打开方式，只读、读写等，perm是权限 |
+| `func (file *File) Write(b []byte) (n int, err Error)`                    | 写入byte类型的信息到文件                        |
+| `func (file *File) WriteAt(b []byte, off int64) (n int, err Error)`       | 在指定位置开始写入byte类型的信息                    |
+| `func (file *File) WriteString(s string) (ret int, err Error)`            | 写入string信息到文件                         |
+| `func (file *File) Read(b []byte) (n int, err Error)`                     | 读取数据到b中                               |
+| `func (file *File) ReadAt(b []byte, off int64) (n int, err Error)`        | 从off开始读取数据到b中                         |
+| `func Remove(name string) Error`                                          | 删除文件名为name的文件                         |
+
+- 创建文件，写入，删除文件示例：[main.go](/io_test/2/main.go)
+- 读取文件示例：[main.go](/io_test/3/main.go)
+- 拷贝文件示例：[main.go](io_test/4/main.go)
+#### 8.5.3 `bufio`
+- `bufio`实现了带缓冲区的读写，是对文件读写的封装
+- `bufio`缓冲写数据
+
+| 模式          | 含义   |
+|-------------|------|
+| os.O_WRONLY | 只写   |
+| os.O_CREATE | 创建文件 |
+| os.O_RDONLY | 只读   |
+| os.O_RDWR   | 读写   |
+| os.O_TRUNC  | 清空   |
+| os.O_APPEND | 追加   |
+
+读写文件的示例：[main.go](/io_test/5/main.go)
+#### 8.5.4 `ioutil`工具包
+- 工具包写文件
+- 工具包读取文件
+读写文件的示例：[main.go](/io_test/6/main.go)
+#### 8.5.4 使用文件操作模拟cat命令
+### 8.6 Strconv
+### 8.7 Template
+### 8.8 Http
+### 8.9 Context
+### 8.10 数据格式
+### 8.11 反射
+## 9 gin框架
+- gin是一个高性能的golang框架，api友好，源码注释比较明确
+- 对于golang而言，web框架的以来要远比python、java之类的药效。自身的net/http足够简单，性能也很不错
+- 借助框架开发，不仅可以省去很多常用的封装带来的时间，也有助于团队的编码风格和形成规范
+### 9.1 安装
+- `go get -u github.com/gin-gonic/gin`安装gin
+- `import "github.com/gin-gonic/gin"`导入代码中
+- `import "net/http"`导入`net/http`，如果需要使用`http.StatusOK`等常量
+### 9.2 `hello,world`
+[main.go](gin_test/1/main.go)
+### 9.3 基本路由
+- gin框架中的路由库是基于`httprouter`做的
+- 地址为：[https://github.com/julienschmidt/httprouter](https://github.com/julienschmidt/httprouter)
+### 9.4 Restful风格的API
+- gin支持Restful风格的API
+- 即`Representational State Transfer`表现层状态转化
+### 9.5 PATH参数
+[main.go](gin_test/2/main.go)
+### 9.6 QUERY参数
+[main.go](gin_test/3/main.go)
+### 9.7 Form参数
+[main](gin_test/4/main.go)
+### 9.8 上传文件
+单个文件：[main](gin_test/5/main.go)
+多个文件：[main](gin_test/6/main.go)
+### 9.9 路由组
+一个路由组可以用来处理一系列的请求（类似模块划分）:[main.go](gin_test/7/main.go)
+### 9.10 路由拆分
+#### 9.10.1 API较少时的路由拆分
+[main.go](gin_test/8/main.go)
+[hello-router](gin_test/8/routers/hello.go)
+[test-router](gin_test/8/routers/test.go)
+#### 9.10.2 API较多时的路由拆分
+[hello-handler](gin_test/9/hello/handler.go)
+[hello-router](gin_test/9/hello/router.go)
+[test-handler](gin_test/9/test/handler.go)
+[test-router](gin_test/9/test/router.go)
+API注册和初始化：[routers](gin_test/9/routers/routers.go)
+服务入口：[main.go](gin_test/9/main.go)
+### 9.11 GIN的数据解析与绑定
